@@ -14,121 +14,184 @@
     <script type="text/javascript" src="file/jscex-async-powerpack.min.js"></script>
     <script type="text/javascript" src="file/function.js" charset="utf-8"></script>
     <script type="text/javascript" src="file/love.js" charset="utf-8"></script>
-	<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <audio id="fireworksAudio" src="fireworks.mp3" preload="auto"></audio>
+
     <script>
-        function playAudio() {
+        /* ===== FIX 3: الأغنية والألعاب النارية تشتغل فقط عند الضغط على القلب ===== */
+        /* نحذف autoplay من الـ audio tag ونتحكم فيه هنا */
+        var audioStarted = false;
+
+        function startAudioAndFireworks() {
+            if (audioStarted) return;
+            audioStarted = true;
+
+            /* تشغيل الأغنية الأصلية */
             var audio = document.getElementById("myAudio");
             audio.play();
+
+            /* تشغيل صوت الألعاب النارية */
+            var fwAudio = document.getElementById("fireworksAudio");
+            fwAudio.loop = true;
+            fwAudio.volume = 1.0;
+            fwAudio.play();
+
+            /* خفض صوت الألعاب بعد 5 ثواني */
+            setTimeout(function() { fwAudio.volume = 0.4; }, 5000);
+
+            /* إيقاف صوت الألعاب بعد 50 ثانية */
+            setTimeout(function() {
+                fwAudio.pause();
+                fwAudio.currentTime = 0;
+            }, 50000);
+
+            /* الألعاب النارية */
+            var duration = 50 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 5, spread: 360, ticks: 100, zIndex: 9999 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
         }
     </script>
-	<style>
-    /* ===== FIXED SIZE LAYOUT - لا يتأثر بزوم المتصفح ===== */
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
 
-    body {
-        background: url('background.gif') no-repeat center center fixed;
-        background-size: cover;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+    <style>
+        /* ===== FIXED SIZE LAYOUT ===== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
 
-    /* حاوية خارجية تملأ الشاشة وتمركز المحتوى */
-    #main {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-    }
+        body {
+            background: url('background.gif') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    /* الحجم الثابت الأصلي للصندوق */
-    #wrap {
-        width: 1020px !important;
-        height: 680px !important;
-        z-index: 10;
-        background-color: rgba(0, 0, 0, 0.6) !important;
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 0 30px rgba(0,0,0,0.7);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        /* تحويل الحجم ليتناسب مع الشاشة تلقائياً */
-        transform-origin: center center;
-        transform: scale(var(--scale-factor, 1));
-        flex-shrink: 0;
-    }
+        #main {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
 
-    #canvas {
-        z-index: 11;
-        width: 1100px !important;
-        height: 680px !important;
-        max-width: none !important;
-        max-height: none !important;
-    }
+        /* ===== FIX 1: زيادة عرض المربع على PC ===== */
+        #wrap {
+            width: 1200px !important;   /* كان 1020px - زدناه */
+            height: 720px !important;   /* كان 680px - زدناه قليلاً */
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transform-origin: center center;
+            transform: scale(var(--scale-factor, 1));
+            flex-shrink: 0;
+        }
 
-    .say {
-        color: white !important;
-        text-shadow: 1px 1px 2px black;
-        font-weight: bold;
-    }
+        /* ===== FIX 1: الكانفاس أيضاً يتوسع مع المربع ===== */
+        #canvas {
+            z-index: 11;
+            width: 1200px !important;
+            height: 720px !important;
+            max-width: none !important;
+            max-height: none !important;
+        }
 
-    #code {
-        font-size: 24px !important;
-        line-height: 1.6;
-        font-family: "Arial", sans-serif;
-        color: white !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        direction: rtl !important;
-        text-align: right !important;
-        white-space: nowrap;
-        display: none;
-    }
-</style>
+        .say {
+            color: white !important;
+            text-shadow: 1px 1px 2px black;
+            font-weight: bold;
+        }
 
-<script>
-    /* ===== حساب نسبة التكبير/التصغير التلقائي ===== */
-    function updateScale() {
-        var BASE_W = 1020; // العرض الأصلي للصندوق
-        var BASE_H = 680;  // الارتفاع الأصلي للصندوق
-        var PADDING = 20;  // هامش من حواف الشاشة
+        #code {
+            font-size: 24px !important;
+            line-height: 1.6;
+            font-family: "Arial", sans-serif;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            direction: rtl !important;
+            text-align: right !important;
+            white-space: nowrap;
+            display: none;
+        }
 
-        var vw = window.innerWidth  - PADDING;
-        var vh = window.innerHeight - PADDING;
+        /* ===== FIX 4: مساحة ضغط أكبر للقلب على الجوال ===== */
+        #canvas {
+            touch-action: manipulation;
+        }
+        /* overlay شفاف فوق منطقة القلب يكبر مساحة اللمس */
+        #heart-touch-area {
+            display: none; /* يظهر فقط على الجوال */
+            position: absolute;
+            z-index: 100;
+            cursor: pointer;
+        }
+        @media (pointer: coarse) {
+            #heart-touch-area {
+                display: block;
+            }
+        }
+    </style>
 
-        var scaleX = vw / BASE_W;
-        var scaleY = vh / BASE_H;
-        var scale  = Math.min(scaleX, scaleY, 1); // لا يكبر أكثر من 1 على سطح المكتب
+    <script>
+        /* ===== FIX 2: حساب نسبة التكبير/التصغير - PC + جوال (طولي وعرضي) ===== */
+        function updateScale() {
+            var BASE_W = 1200;  /* يجب أن يطابق عرض #wrap */
+            var BASE_H = 720;   /* يجب أن يطابق ارتفاع #wrap */
+            var PADDING = 16;
 
-        document.documentElement.style.setProperty('--scale-factor', scale);
-    }
+            var vw = window.innerWidth  - PADDING;
+            var vh = window.innerHeight - PADDING;
 
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    window.addEventListener('orientationchange', function() {
-        setTimeout(updateScale, 300); // تأخير بسيط بعد تغيير الاتجاه
-    });
-</script>
+            var scaleX = vw / BASE_W;
+            var scaleY = vh / BASE_H;
 
+            /* على PC: لا يكبر فوق 1 | على الجوال: يصغر ليتناسب مع أي اتجاه */
+            var isMobile = window.innerWidth <= 1024;
+            var maxScale = isMobile ? 2 : 1;  /* على الجوال نسمح له يكبر إذا احتاج */
+            var scale = Math.min(scaleX, scaleY, maxScale);
+
+            document.documentElement.style.setProperty('--scale-factor', scale);
+        }
+
+        updateScale();
+        window.addEventListener('resize', updateScale);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(updateScale, 300);
+        });
+    </script>
 </head>
 <body>
     <div id="main">
-        <div id="error"><a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html?hl=zh-CN&brand=CHMI">Chrome</a> (<a href="http://firefox.com.cn/download/">Firefox</a>)</div>
-        <audio autoplay="autoplay" height="100" width="100" id="myAudio">
+        <div id="error">يرجى استخدام متصفح حديث</div>
+
+        <!-- FIX 3: إزالة autoplay - الصوت يشتغل فقط عند الضغط على القلب -->
+        <audio height="0" width="0" id="myAudio">
             <source src="aud.mp3" type="audio/mp3" />
-            <embed height="100" width="120" src="aud.mp3" />
         </audio>
+
         <div id="wrap">
             <div id="text">
                 <div id="code">
@@ -138,27 +201,29 @@
                     <span class="say">حفظك الله من كل سوء 💕</span><br>
                     <span class="say">كل سنة وانتي سندي في الحياة ❤️</span><br>
                     <span class="say">انتي نعمة من الله  ❤️😘</span><br>
-					<span class="say">أحبك يا أحلى أخت  ❤️</span><br>
+                    <span class="say">أحبك يا أحلى أخت  ❤️</span><br>
                 </div>
             </div>
             <div id="clock-box">
-                <span id="clock">577 days 0 hours 0 minutes 0 seconds</span> <!-- Change to "6940 days..." if needed -->
+                <span id="clock">577 days 0 hours 0 minutes 0 seconds</span>
             </div>
-            <canvas id="canvas" width="1100" height="680"></canvas>
+            <!-- FIX 4: div شفاف فوق منطقة القلب يكبر مساحة اللمس على الجوال -->
+            <div id="heart-touch-area"></div>
+            <canvas id="canvas" width="1200" height="720"></canvas>
         </div>
     </div>
 
     <script>
     (function() {
         var canvas = $('#canvas');
-		
+
         if (!canvas[0].getContext) {
             $("#error").show();
             return false;
         }
 
         var width = canvas.width();
-        var height = canvas.height();        
+        var height = canvas.height();
         canvas.attr("width", width);
         canvas.attr("height", height);
 
@@ -184,15 +249,15 @@
                     [546, 357, 608, 252, 678, 221, 6, 100, [
                         [590, 293, 646, 277, 648, 271, 2, 80]
                     ]]
-                ]] 
+                ]]
             ],
             bloom: {
                 num: 700,
-                width: 1080,
-                height: 650,
+                width: 1180,
+                height: 700,
             },
             footer: {
-                width: 1200,
+                width: 1300,
                 height: 5,
                 speed: 10,
             }
@@ -203,61 +268,72 @@
         var foot = tree.footer;
         var hold = 1;
 
-        canvas.click(function(e) {
-            playAudio(); // تشغيل الأغنية الأصلية
-    
-    // --- كود صوت الألعاب النارية الجديد ---
-    var fwAudio = document.getElementById("fireworksAudio");
-    fwAudio.loop = true;  // تفعيل التكرار التلقائي لأن مدته 16 ثانية والألعاب 50 ثانية
-    fwAudio.volume = 1.0; // مستوى الصوت 100% في البداية
-    fwAudio.play();
+        /* ===== FIX 4: دالة موحدة تتعامل مع اللمس والكليك ===== */
+        function handleInteraction(x, y) {
+            /* على الجوال: نكبّر منطقة اكتشاف القلب بمقدار 2.5x */
+            var isMobile = ('ontouchstart' in window);
+            var hitRadius = isMobile ? 2.5 : 1;
 
-    // بعد 5 ثوانٍ (5000 ميلي ثانية) يتم خفض الصوت إلى 40%
-    setTimeout(function() {
-        fwAudio.volume = 0.4; 
-    }, 5000);
+            /* نحسب المسافة من مركز القلب المرسوم تقريباً */
+            var heartCenterX = seed.heart.point.x;
+            var heartCenterY = seed.heart.point.y;
+            var dist = Math.sqrt(Math.pow(x - heartCenterX, 2) + Math.pow(y - heartCenterY, 2));
+            var heartSize = 45 * seed.heart.scale; /* حجم القلب التقريبي */
 
-    // إيقاف صوت الألعاب النارية تماماً بعد 50 ثانية (انتهاء مدة الألعاب)
-    setTimeout(function() {
-        fwAudio.pause();
-        fwAudio.currentTime = 0; // إعادة الصوت للبداية
-    }, 50000);
-			// --- كود الألعاب النارية الجديد ---
-    var duration = 50 * 1000; // مدة الألعاب النارية (5 ثوانٍ)
-    var animationEnd = Date.now() + duration;
-    var defaults = { startVelocity: 5, spread: 360, ticks: 100, zIndex: 1 };
+            var isHit = dist < heartSize * hitRadius || seed.hover(x, y);
 
-    function randomInRange(min, max) {
-      return Math.random() * (max - min) + min;
-    }
-
-    var interval = setInterval(function() {
-      var timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      var particleCount = 50 * (timeLeft / duration);
-      // إطلاق من اليمين ومن اليسار
-      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-    }, 250);
-            var offset = canvas.offset(), x, y;
-            x = e.pageX - offset.left;
-            y = e.pageY - offset.top;
-            if (seed.hover(x, y)) {
-                hold = 0; 
+            if (isHit && hold === 1) {
+                hold = 0;
+                startAudioAndFireworks(); /* FIX 3: تشغيل الصوت والألعاب */
                 canvas.unbind("click");
                 canvas.unbind("mousemove");
                 canvas.removeClass('hand');
+                $('#heart-touch-area').hide();
             }
-        }).mousemove(function(e) {
+        }
+
+        /* كليك للماوس */
+        canvas.click(function(e) {
+            var offset = canvas.offset();
+            var x = e.pageX - offset.left;
+            var y = e.pageY - offset.top;
+            handleInteraction(x, y);
+        });
+
+        /* لمس الجوال */
+        canvas[0].addEventListener('touchend', function(e) {
+            e.preventDefault();
+            var offset = canvas.offset();
+            var touch = e.changedTouches[0];
+            var scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 1;
+            var x = (touch.pageX - offset.left) / scaleFactor;
+            var y = (touch.pageY - offset.top) / scaleFactor;
+            handleInteraction(x, y);
+        }, { passive: false });
+
+        /* حركة الماوس لإظهار المؤشر */
+        canvas.mousemove(function(e) {
             var offset = canvas.offset(), x, y;
             x = e.pageX - offset.left;
             y = e.pageY - offset.top;
             canvas.toggleClass('hand', seed.hover(x, y));
         });
+
+        /* ===== FIX 4: ضبط div اللمس فوق القلب تلقائياً ===== */
+        function updateTouchArea() {
+            var scaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor')) || 1;
+            var offset = canvas.offset();
+            var heartX = seed.heart.point.x * scaleFactor + offset.left;
+            var heartY = seed.heart.point.y * scaleFactor + offset.top;
+            var size = 120; /* حجم منطقة اللمس بالبيكسل على الشاشة */
+            $('#heart-touch-area').css({
+                left: (heartX - size/2) + 'px',
+                top:  (heartY - size/2) + 'px',
+                width:  size + 'px',
+                height: size + 'px',
+                position: 'fixed'
+            });
+        }
 
         var seedAnimate = eval(Jscex.compile("async", function () {
             seed.draw();
@@ -297,8 +373,6 @@
             }
             foot.draw();
             tree.snapshot("p2", 500, 0, 610, 680);
-
-
             $await(Jscex.Async.sleep(300));
             canvas.css("background", "none");
         }));
@@ -306,9 +380,11 @@
         var textAnimate = eval(Jscex.compile("async", function () {
             $("#code").show().typewriter();
         }));
-	    
+
         var runAsync = eval(Jscex.compile("async", function () {
             $await(seedAnimate());
+            /* بعد ما القلب يظهر، نضبط منطقة اللمس */
+            updateTouchArea();
             $await(growAnimate());
             $await(flowAnimate());
             $await(moveAnimate());
@@ -317,7 +393,6 @@
 
         runAsync().start();
     })();
-	
     </script>
 </body>
 </html>
