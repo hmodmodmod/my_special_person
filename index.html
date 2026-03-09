@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=1200, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title> ❤عيد سعيد </title>	    
     <link type="text/css" rel="stylesheet" href="file/default.css">
@@ -23,70 +23,103 @@
         }
     </script>
 	<style>
-body {
+    /* ===== FIXED SIZE LAYOUT - لا يتأثر بزوم المتصفح ===== */
+    html, body {
         margin: 0;
         padding: 0;
-        /* ضع هنا اسم ملف القيف الخاص بك */
-        background: url('background.gif') no-repeat center center fixed;
-        background-size: cover;
-		display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-		z-index: -2;
-		overflow: hidden; /* يمنع ظهور شريط التمرير في الجوال */
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
     }
 
+    body {
+        background: url('background.gif') no-repeat center center fixed;
+        background-size: cover;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* حاوية خارجية تملأ الشاشة وتمركز المحتوى */
+    #main {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    /* الحجم الثابت الأصلي للصندوق */
     #wrap {
-       width: 85vw !important; 
-        height: 80vh !important;
+        width: 1020px !important;
+        height: 680px !important;
         z-index: 10;
-        /* الشفافية التي اخترتها (20%) */
-        background-color: rgba(0, 0, 0, 0.6) !important; 
+        background-color: rgba(0, 0, 0, 0.6) !important;
         border-radius: 20px;
         position: relative;
-        overflow: hidden; 
+        overflow: hidden;
         box-shadow: 0 0 30px rgba(0,0,0,0.7);
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        /* تحويل الحجم ليتناسب مع الشاشة تلقائياً */
+        transform-origin: center center;
+        transform: scale(var(--scale-factor, 1));
+        flex-shrink: 0;
     }
 
     #canvas {
-	    z-index: 11;
-        max-width: 100% !important;
-        max-height: 100% !important;
+        z-index: 11;
+        width: 1100px !important;
+        height: 680px !important;
+        max-width: none !important;
+        max-height: none !important;
     }
 
     .say {
         color: white !important;
         text-shadow: 1px 1px 2px black;
-		font-weight: bold;
+        font-weight: bold;
     }
-	#code {
-        font-size: 24px !important; 
+
+    #code {
+        font-size: 24px !important;
         line-height: 1.6;
         font-family: "Arial", sans-serif;
         color: white !important;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        direction: rtl !important;    /* اتجاه عربي */
-        text-align: right !important; /* محاذاة يمين */
-        white-space: nowrap; 
-        display: none; /* سيظهره السكربت لاحقاً */
-    }
-
-/* تعديلات خاصة بشاشات الجوال الصغيرة */
-    @media screen and (max-width: 600px) {
-        #code {
-            font-size: 16px !important; /* تصغير الخط للجوال لكي لا يخرج عن المربع */
-        }
-        #wrap {
-            width: 95vw !important;
-            height: 85vh !important;
-        }
+        direction: rtl !important;
+        text-align: right !important;
+        white-space: nowrap;
+        display: none;
     }
 </style>
+
+<script>
+    /* ===== حساب نسبة التكبير/التصغير التلقائي ===== */
+    function updateScale() {
+        var BASE_W = 1020; // العرض الأصلي للصندوق
+        var BASE_H = 680;  // الارتفاع الأصلي للصندوق
+        var PADDING = 20;  // هامش من حواف الشاشة
+
+        var vw = window.innerWidth  - PADDING;
+        var vh = window.innerHeight - PADDING;
+
+        var scaleX = vw / BASE_W;
+        var scaleY = vh / BASE_H;
+        var scale  = Math.min(scaleX, scaleY, 1); // لا يكبر أكثر من 1 على سطح المكتب
+
+        document.documentElement.style.setProperty('--scale-factor', scale);
+    }
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    window.addEventListener('orientationchange', function() {
+        setTimeout(updateScale, 300); // تأخير بسيط بعد تغيير الاتجاه
+    });
+</script>
 
 </head>
 <body>
