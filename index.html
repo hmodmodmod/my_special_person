@@ -158,12 +158,13 @@
     <script>
         /* ===== FIX 2: حساب نسبة التكبير/التصغير - PC + جوال (طولي وعرضي) ===== */
         function updateScale() {
-            var BASE_W = 1200;  /* يجب أن يطابق عرض #wrap */
+            var BASE_W = 1000;  /* يجب أن يطابق عرض #wrap */
             var BASE_H = 720;   /* يجب أن يطابق ارتفاع #wrap */
             var PADDING = 16;
 
-            var vw = window.innerWidth  - PADDING;
-            var vh = window.innerHeight - PADDING;
+            var vw = (window.visualViewport ? window.visualViewport.width  : window.innerWidth)  - PADDING;
+            var vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) - PADDING;
+
 
             var scaleX = vw / BASE_W;
             var scaleY = vh / BASE_H;
