@@ -23,78 +23,65 @@
         }
     </script>
 	<style>
-    body {
-        margin: 0;
-        padding: 0;
-        background: url('background.gif') no-repeat center center fixed;
-        background-size: cover;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        overflow: hidden; /* يمنع التمرير في الجوال */
-    }
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    background: url('background.gif') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    z-index: -2;
+    overflow: hidden;
+}
 
-    #wrap {
-        width: 85vw !important; 
-        height: 80vh !important;
-        z-index: 10;
-        background-color: rgba(0, 0, 0, 0.6) !important; 
-        border-radius: 20px;
-        position: relative;
-        overflow: hidden; 
-        box-shadow: 0 0 30px rgba(0,0,0,0.7);
-        /* أزلنا الـ flex هنا لضمان عمل الـ absolute للأجزاء الداخلية */
-    }
+#wrap {
+    width: 90vw !important; /* يأخذ 90% من عرض الشاشة */
+    height: 85vh !important; /* يأخذ 85% من طول الشاشة */
+    z-index: 10;
+    background-color: rgba(0, 0, 0, 0.6) !important; 
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden; 
+    box-shadow: 0 0 30px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
 
-    #canvas {
-        display: block;
-        z-index: 20 !important; /* رفعه فوق أي طبقة أخرى */
-        cursor: pointer; /* لتأكيد أن العنصر قابل للضغط */
-        width: 100% !important;
-        height: 100% !important;
-    }
+#canvas {
+    z-index: 11;
+    width: 100% !important;
+    height: 100% !important;
+}
 
-    #text {
-        width: 100% !important;
-        position: absolute !important;
-        top: 40px !important;
-        right: 20px !important; /* المسافة من اليمين */
-        z-index: 15;
-        direction: rtl !important;
-        text-align: right !important;
-		pointer-events: none; /* لضمان أن مربع النص لا يحجب الضغط عن الكانفاس */
-    }
+#code {
+    font-size: 2.5vw !important; /* حجم الخط يتغير حسب عرض الشاشة */
+    line-height: 1.6;
+    font-family: "Arial", sans-serif;
+    color: white !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    direction: rtl !important;
+    text-align: right !important;
+    white-space: nowrap; 
+    display: none;
+    position: absolute; /* لجعل النص يظهر فوق الشجرة بشكل مرتب */
+    top: 50px;
+    right: 20px;
+}
 
+/* للجوالات الصغيرة */
+@media screen and (max-width: 600px) {
     #code {
-        display: none;
-        font-size: 20px !important; /* حجم مناسب للجوال والكمبيوتر */
-        line-height: 1.6;
-        font-family: "Arial", sans-serif;
-        color: white !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-        white-space: nowrap; 
+        font-size: 14px !important;
+        top: 20px;
+        right: 10px;
     }
-
-    /* تعديل حجم الخط للشاشات الكبيرة */
-    @media screen and (min-width: 800px) {
-        #code { font-size: 28px !important; }
-    }
-
-    .say {
-        font-weight: bold;
-    }
-
-    /* تعديلات خاصة بشاشات الجوال الصغيرة */
-    @media screen and (max-width: 600px) {
-        #code {
-            font-size: 16px !important; /* تصغير الخط للجوال لكي لا يخرج عن المربع */
-        }
-        #wrap {
-            width: 95vw !important;
-            height: 85vh !important;
-        }
-    }
+}
+</style>
 </style>
 
 </head>
@@ -127,14 +114,14 @@
     <script>
     (function() {
         var canvas = $('#canvas');
-        var wrap = $('#wrap');
+        var wrap = $('#wrap'); // الحصول على المربع المحيط
 
         if (!canvas[0].getContext) {
             $("#error").show();
             return false;
         }
 
-        // ضبط أبعاد الكانفاس لتطابق حجم المربع الأسود تماماً
+        // جعل أبعاد الكانفس مطابقة تماماً للمربع الأسود
         var width = wrap.width();
         var height = wrap.height();        
         canvas.attr("width", width);
@@ -142,25 +129,31 @@
 
         var opts = {
             seed: {
-                x: width / 2, // توسيط القلب تماماً
-                y: height / 2,
+                x: width / 2 - 20,
                 color: "rgb(190, 26, 37)",
-                scale: 2
+                scale: width < 600 ? 1 : 2 // تصغير حجم البذرة في الجوال
             },
             branch: [
-                // تعديل إحداثيات الشجرة لتتناسب مع أي حجم شاشة
-                [width/2, height, width/2, height*0.4, width/2, height*0.3, 30, 100, [
-                    [width/2, height*0.7, width/2 - 80, height*0.6, width/2 - 150, height*0.6, 13, 100, [
-                        [width/2 - 85, height*0.63, width/2 - 100, height*0.62, width/2 - 140, height*0.58, 2, 40]
+                // تعديل إحداثيات الشجرة لتكون نسبية لمركز الشاشة
+                [width/2, height, width/2 + 35, height*0.36, width/2 - 35, height*0.29, 30, 100, [
+                    [width/2 + 5, height*0.73, width/2 - 80, height*0.61, width/2 - 195, height*0.58, 13, 100, [
+                        [width/2 - 85, height*0.64, width/2 - 100, height*0.63, width/2 - 140, height*0.58, 2, 40]
                     ]],
-                    [width/2 + 10, height*0.65, width/2 + 60, height*0.52, width/2 + 140, height*0.5, 12, 100, [
-                        [width/2 + 38, height*0.58, width/2 + 100, height*0.6, width/2 + 120, height*0.62, 3, 80]
+                    [width/2 + 15, height*0.65, width/2 + 65, height*0.52, width/2 + 145, height*0.5, 12, 100, [
+                        [width/2 + 43, height*0.58, width/2 + 113, height*0.6, width/2 + 126, height*0.62, 3, 80]
                     ]],
-                    [width/2, height*0.4, width/2, height*0.35, width/2, height*0.3, 3, 40]
+                    [width/2 + 4, height*0.41, width/2 + 2, height*0.36, width/2 - 1, height*0.32, 3, 40],
+                    [width/2 + 11, height*0.58, width/2 - 122, height*0.36, width/2 - 207, height*0.35, 9, 80, [
+                        [width/2 - 108, height*0.42, width/2 - 152, height*0.37, width/2 - 164, height*0.3, 2, 40],
+                        [width/2 - 37, height*0.5, width/2 - 100, height*0.46, width/2 - 140, height*0.48, 4, 60]
+                    ]],
+                    [width/2 + 11, height*0.52, width/2 + 73, height*0.37, width/2 + 143, height*0.32, 6, 100, [
+                        [width/2 + 55, height*0.43, width/2 + 111, height*0.4, width/2 + 113, height*0.39, 2, 80]
+                    ]]
                 ]] 
             ],
             bloom: {
-                num: 700,
+                num: width < 600 ? 400 : 700, // تقليل عدد الورد في الجوال للأداء
                 width: width,
                 height: height,
             },
@@ -178,20 +171,7 @@
 
         canvas.click(function(e) {
             playAudio(); // تشغيل الأغنية الأصلية
-    var offset = canvas.offset(); 
-    var x = e.pageX - offset.left;
-    var y = e.pageY - offset.top;
-
-    // طباعة الإحداثيات في المتصفح للتأكد (اختياري)
-    console.log("الضغط في: ", x, y); 
-
-    if (seed.hover(x, y)) {
-        hold = 0; 
-        canvas.unbind("click");
-        canvas.unbind("mousemove");
-        canvas.removeClass('hand');
-    }
-
+    
     // --- كود صوت الألعاب النارية الجديد ---
     var fwAudio = document.getElementById("fireworksAudio");
     fwAudio.loop = true;  // تفعيل التكرار التلقائي لأن مدته 16 ثانية والألعاب 50 ثانية
@@ -276,14 +256,14 @@
         }));
 
         var moveAnimate = eval(Jscex.compile("async", function () {
-            tree.snapshot("p1", 0, 0, width, height);
-            // تحريك الشجرة بنسبة 30% من عرض الشاشة لليسار لإفساح مجال للنص
-            while (tree.move("p1", width * 0.3, 0)) {
+            tree.snapshot("p1", 240, 0, 610, 680);
+            while (tree.move("p1", 500, 0)) {
                 foot.draw();
                 $await(Jscex.Async.sleep(10));
             }
             foot.draw();
-            tree.snapshot("p2", width * 0.3, 0, width, height);
+            tree.snapshot("p2", 500, 0, 610, 680);
+
 
             $await(Jscex.Async.sleep(300));
             canvas.css("background", "none");
