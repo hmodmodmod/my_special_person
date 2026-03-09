@@ -153,7 +153,29 @@
                 display: block;
             }
         }
-    </style>
+    
+        /* ===== زر الشاشة الكاملة ===== */
+        #fullscreen-btn {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: rgba(0,0,0,0.55);
+            color: white;
+            border: 1.5px solid rgba(255,255,255,0.35);
+            border-radius: 30px;
+            padding: 8px 22px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: background 0.2s, opacity 0.3s;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        #fullscreen-btn:hover { background: rgba(255,100,150,0.5); }
+</style>
 
     <script>
         /* ===== FIX 2: حساب نسبة التكبير/التصغير - PC + جوال (طولي وعرضي) ===== */
@@ -182,9 +204,50 @@
         window.addEventListener('orientationchange', function() {
             setTimeout(updateScale, 300);
         });
+
+        /* ===== منطق زر الشاشة الكاملة ===== */
+        var fsTimer = null;
+        function toggleFullscreen() {
+            var btn = document.getElementById('fullscreen-btn');
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                var el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen();
+                else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                btn.textContent = '✕  خروج من الشاشة الكاملة';
+                clearTimeout(fsTimer);
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                btn.textContent = '⛶  شاشة كاملة';
+                clearTimeout(fsTimer);
+                btn.classList.remove('fade-out');
+            }
+        }
+        function showFsBtn() {
+            var btn = document.getElementById('fullscreen-btn');
+            if (!btn) return;
+            btn.classList.remove('fade-out');
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                clearTimeout(fsTimer);
+                fsTimer = setTimeout(function() { btn.classList.add('fade-out'); }, 3000);
+            }
+        }
+        document.addEventListener('fullscreenchange', function() {
+            var btn = document.getElementById('fullscreen-btn');
+            if (!document.fullscreenElement) { btn.textContent = '⛶  شاشة كاملة'; btn.classList.remove('fade-out'); clearTimeout(fsTimer); }
+            updateScale();
+        });
+        document.addEventListener('webkitfullscreenchange', function() {
+            var btn = document.getElementById('fullscreen-btn');
+            if (!document.webkitFullscreenElement) { btn.textContent = '⛶  شاشة كاملة'; btn.classList.remove('fade-out'); clearTimeout(fsTimer); }
+            updateScale();
+        });
     </script>
 </head>
 <body>
+    <!-- زر الشاشة الكاملة -->
+    <button id="fullscreen-btn" onclick="toggleFullscreen()">⛶  شاشة كاملة</button>
+
     <div id="main">
         <div id="error">يرجى استخدام متصفح حديث</div>
 
@@ -228,9 +291,13 @@
         canvas.attr("width", width);
         canvas.attr("height", height);
 
+        // إصلاح 1: seed.x = 535 نفس موقع جذع الشجرة
+        // إصلاح 2: bloom.width = 1070 تتمركز الورق حول الشجرة
+        var TREE_X = 535;
+
         var opts = {
             seed: {
-                x: width / 2 - 20,
+                x: TREE_X,
                 color: "rgb(190, 26, 37)",
                 scale: 2
             },
@@ -254,7 +321,7 @@
             ],
             bloom: {
                 num: 700,
-                width: 1180,
+                width: TREE_X * 2,
                 height: 700,
             },
             footer: {
@@ -367,13 +434,18 @@
         }));
 
         var moveAnimate = eval(Jscex.compile("async", function () {
-            tree.snapshot("p1", 240, 0, 610, 680);
-            while (tree.move("p1", 500, 0)) {
+            /*
+             * الإصلاح: نأخذ snapshot للكانفاس كله من x=0
+             * ونحركه من x=0 إلى x=260 (نفس مقدار الحركة الأصلية 500-240=260)
+             * فالشجرة تتحرك كاملة بدون قطع من أي جهة
+             */
+            tree.snapshot("p1", 0, 0, width, height);
+            while (tree.move("p1", 260, 0)) {
                 foot.draw();
                 $await(Jscex.Async.sleep(10));
             }
             foot.draw();
-            tree.snapshot("p2", 500, 0, 610, 680);
+            tree.snapshot("p2", 260, 0, width, height);
             $await(Jscex.Async.sleep(300));
             canvas.css("background", "none");
         }));
