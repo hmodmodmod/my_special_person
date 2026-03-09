@@ -175,6 +175,7 @@
             white-space: nowrap;
         }
         #fullscreen-btn:hover { background: rgba(255,100,150,0.5); }
+        #fullscreen-btn.fade-out { opacity: 0; pointer-events: none; }
 </style>
 
     <script>
@@ -215,6 +216,7 @@
                 else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
                 btn.textContent = '✕  خروج من الشاشة الكاملة';
                 clearTimeout(fsTimer);
+                fsTimer = setTimeout(function() { btn.classList.add('fade-out'); }, 3000);
             } else {
                 if (document.exitFullscreen) document.exitFullscreen();
                 else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
@@ -232,6 +234,8 @@
                 fsTimer = setTimeout(function() { btn.classList.add('fade-out'); }, 3000);
             }
         }
+        document.addEventListener('mousemove', showFsBtn);
+        document.addEventListener('touchstart', showFsBtn);
         document.addEventListener('fullscreenchange', function() {
             var btn = document.getElementById('fullscreen-btn');
             if (!document.fullscreenElement) { btn.textContent = '⛶  شاشة كاملة'; btn.classList.remove('fade-out'); clearTimeout(fsTimer); }
